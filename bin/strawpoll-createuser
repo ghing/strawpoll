@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var mongoose = require('mongoose');
+var program = require('commander');
+
+var conf = require('../lib/conf');
+var models = require('../lib/models');
+var User = models.User;
+
+var db;
+
+program
+  .version('0.0.0')
+  .parse(process.argv);
+
+var name = program.args[0];
+var phone = program.args[1];
+
+mongoose.connect(conf.get('STRAWPOLL_MONGO_CONNECTION_STRING'));
+
+db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+  User.findOne({ phone: phone }, function(err, user) {
+    if (user === null) {
+      User.create({ phone: phone, name: name }, function(err, created) {
+        if (err) {
+          console.error('Error creating user ' + name);
+        }
+        else {
+          console.log('User ' + name + ' (' + phone + ') created');  
+        }
+        mongoose.disconnect();
+      });
+    }
+    else {
+      console.log('User already exists');
+      mongoose.disconnect();
+    }
+  });
+});

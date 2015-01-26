@@ -1,0 +1,35 @@
+{
+  "name": "strawpoll",
+  "version": "0.0.0",
+  "description": "Ad-hoc group decision making.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "poll",
+    "collaboration",
+    "consensus"
+  ],
+  "author": "Geoff Hing <geoffhing@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^0.9.0",
+    "commander": "~2.6.0",
+    "express": "^4.11.2",
+    "mongoose": "^3.8.22",
+    "nconf": "^0.7.1",
+    "winston": "^0.8.3",
+    "body-parser": "^1.11.0",
+    "twilio": "^1.10.0",
+    "cookie-parser": "^1.3.3",
+    "lodash": "^3.1.0",
+    "moment": "^2.9.0"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "should": "^4.6.2",
+    "sinon": "^1.12.2",
+    "supertest": "^0.15.0"
+  }
+}

@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+var moment = require('moment');
+var mongoose = require('mongoose');
+var program = require('commander');
+
+var conf = require('../lib/conf');
+var randomInt = require('../lib/util').randomInt;
+var Sender = require('../lib/send').Sender;
+
+var db;
+
+var parseDuration = function(s) {
+  var bits = s.split(/\s+/);
+  return [parseInt(bits[0], 10), bits[1]];
+}; 
+
+program
+  .version('0.0.0')
+  .option('-w, --wait [duration]', 'Wait this long between sending choices to a user', parseDuration, [2, 'hours'])
+  .option('-m, --maxvotes [count]', 'Only send suggestions that the user has not voted on more than this many times', parseInt, 3)
+  .option('-c, --coinflip', 'Simulate a coin flip to decide whether or not to send a suggestion')
+  .option('-u, --user [name]', 'Only try to send to the user with this name')
+  .parse(process.argv);
+
+mongoose.connect(conf.get('STRAWPOLL_MONGO_CONNECTION_STRING'));
+
+db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function (callback) {
+  var sender = new Sender({
+    maxVotes: program.maxvotes,
+    wait: moment.duration(program.wait[0], program.wait[1]),
+    // Override the default sending validation
+    shouldSend: function(sender, user) {
+      // Start with the default.  It's based on the wait value 
+      var shouldSend = sender.shouldSend(user);
+
+      if (shouldSend && program.coinflip) {
+        shouldSend = (randomInt(0, 2) !== 0);
+      }
+
+      if (shouldSend && program.user) {
+        shouldSend = (user.name === program.user);
+      }
+
+      return shouldSend;
+    }
+  });
+
+  sender.once('done', function() {
+    mongoose.disconnect();
+  });
+
+  sender.sendAll();
+});
